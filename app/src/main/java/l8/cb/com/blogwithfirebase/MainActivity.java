@@ -31,6 +31,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.squareup.picasso.Callback;
+import com.squareup.picasso.NetworkPolicy;
 import com.squareup.picasso.Picasso;
 
 public class MainActivity extends AppCompatActivity {
@@ -53,57 +55,59 @@ public class MainActivity extends AppCompatActivity {
         rv = (RecyclerView) findViewById(R.id.rv);
         rv.setLayoutManager(new LinearLayoutManager(this));
         database = FirebaseDatabase.getInstance().getReference().child("blog");
+        database.keepSynced(true);  //this method is used to store the string, integer datatype for offline capabilities
         //.getReference("blog");
 
         //-----------------------------------------------------------------------------------------
 
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                if (firebaseAuth.getCurrentUser() != null) {
-
-                    startActivity(new Intent(MainActivity.this, PostActivity.class));
-
-                } else {
-
-                }
-
-            }
-        };
-
-        mAuth = FirebaseAuth.getInstance();
-        signIn = (SignInButton) findViewById(R.id.btnSignIn);
-
-        mAuth.addAuthStateListener(authStateListener);
-
-        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
-                .requestIdToken(getString(R.string.default_web_client_id))
-                .requestEmail()
-                .build();
-
-        mGoogleApiClient = new GoogleApiClient.Builder(this)
-                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
-                    @Override
-                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
-
-                        Toast.makeText(MainActivity.this, "You got an error", Toast.LENGTH_SHORT).show();
-
-                    }
-                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso)
-                .build();
-
-        signIn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                signIn();
-
-            }
-        });
-
+//        authStateListener = new FirebaseAuth.AuthStateListener() {
+//            @Override
+//            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+//
+//                if (firebaseAuth.getCurrentUser() != null) {
+//
+//                    startActivity(new Intent(MainActivity.this, PostActivity.class));
+//
+//                } else {
+//
+//                }
+//
+//            }
+//        };
+//
+//        mAuth = FirebaseAuth.getInstance();
+//        signIn = (SignInButton) findViewById(R.id.btnSignIn);
+//
+//        mAuth.addAuthStateListener(authStateListener);
+//
+//        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+//                .requestIdToken(getString(R.string.default_web_client_id))
+//                .requestEmail()
+//                .build();
+//
+//        mGoogleApiClient = new GoogleApiClient.Builder(this)
+//                .enableAutoManage(this, new GoogleApiClient.OnConnectionFailedListener() {
+//                    @Override
+//                    public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
+//
+//                        Toast.makeText(MainActivity.this, "You got an error", Toast.LENGTH_SHORT).show();
+//
+//                    }
+//                }).addApi(Auth.GOOGLE_SIGN_IN_API, gso)
+//                .build();
+//
+//        signIn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                signIn();
+//
+//            }
+//        });
+//
 
         //------------------------------------------------------------------
+
         FirebaseRecyclerAdapter<BlogPOJO, BlogViewHolder> firebaseRecyclerAdapter = new FirebaseRecyclerAdapter<BlogPOJO, BlogViewHolder>(
 
                 BlogPOJO.class,
@@ -112,17 +116,36 @@ public class MainActivity extends AppCompatActivity {
                 database
         ) {
             @Override
-            protected void populateViewHolder(BlogViewHolder viewHolder, BlogPOJO model, int position) {
+            protected void populateViewHolder(final BlogViewHolder viewHolder, final BlogPOJO model, int position) {
 
                 viewHolder.tvTitle.setText(model.getTitle());
                 viewHolder.tvPost.setText(model.getPost());
-                Picasso.with(MainActivity.this).load(model.getImageUri()).into(viewHolder.iv);
-                Log.d(TAG, "populateViewHolder: " + position);
 
+
+                //Picasso.with(MainActivity.this).load(model.getImageUri()).into(viewHolder.iv);
+
+                Picasso.with(MainActivity.this).load(model.getImageUri())
+                        .networkPolicy(NetworkPolicy.OFFLINE)
+                        .into(viewHolder.iv, new Callback() {
+                            @Override
+                            public void onSuccess() {
+
+                                //image retrieved offline
+                                Log.d(TAG, "onSuccess: ");
+                            }
+
+                            @Override
+                            public void onError() {
+
+                                Log.d(TAG, "onError: ");
+                                Picasso.with(MainActivity.this).load(model.getImageUri()).into(viewHolder.iv);
+                            }
+                        });
+
+                Log.d(TAG, "populateViewHolder: " + position);
 
             }
         };
-
 
         rv.setAdapter(firebaseRecyclerAdapter);
     }

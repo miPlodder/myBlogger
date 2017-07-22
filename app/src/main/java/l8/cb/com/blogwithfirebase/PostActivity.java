@@ -63,30 +63,29 @@ public class PostActivity extends AppCompatActivity {
          *
         **/
 
-        firebaseAuth = FirebaseAuth.getInstance();
-
-        authStateListener = new FirebaseAuth.AuthStateListener() {
-            @Override
-            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
-
-                if(firebaseAuth.getCurrentUser() == null){
-
-                    startActivity(new Intent(PostActivity.this, MainActivity.class));
-
-                }
-
-            }
-        };
-        firebaseAuth.addAuthStateListener(authStateListener);
-        btnLogout.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                firebaseAuth.signOut();
-
-            }
-        });
-
+//        firebaseAuth = FirebaseAuth.getInstance();
+//
+//        authStateListener = new FirebaseAuth.AuthStateListener() {
+//            @Override
+//            public void onAuthStateChanged(@NonNull FirebaseAuth firebaseAuth) {
+//
+//                if(firebaseAuth.getCurrentUser() == null){
+//
+//                    startActivity(new Intent(PostActivity.this, MainActivity.class));
+//
+//                }
+//
+//            }
+//        };
+//        firebaseAuth.addAuthStateListener(authStateListener);
+//        btnLogout.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//
+//                firebaseAuth.signOut();
+//
+//            }
+//        });
 
         //-----------------------------------------------------------------------------------------
 
